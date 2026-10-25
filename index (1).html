@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Listing Scout: scout a product idea before you commit</title>
+<meta name="description" content="Listing Scout is a personal, read-only research tool that gauges demand and competition for a product category using the official Etsy Open API.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,800&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #f4f1fa;
+    --surface: #ffffff;
+    --ink: #1d1537;
+    --muted: #5b5273;
+    --line: #d9d3e8;
+    --accent: #e8590c;
+    --accent-soft: #ffe3d1;
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: "Inter", "Helvetica Neue", Arial, sans-serif;
+    font-size: 1.0625rem;
+    line-height: 1.65;
+  }
+  h1, h2, h3 { font-family: "Fraunces", Georgia, serif; margin: 0; line-height: 1.1; letter-spacing: -0.02em; }
+  p { margin: 0; }
+  a { color: inherit; }
+  :focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+  .wrap { max-width: 64rem; margin: 0 auto; padding: 0 1.5rem; }
+
+  header { padding: 1.25rem 0; }
+  header .wrap { display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
+  .brand { font-family: "Fraunces", Georgia, serif; font-weight: 800; font-size: 1.35rem; text-decoration: none; }
+  .brand b { color: var(--accent); }
+  nav a { margin-left: 1.5rem; text-decoration: none; color: var(--muted); font-weight: 500; }
+  nav a:hover { color: var(--ink); }
+
+  .hero { padding: 3.5rem 0 3rem; text-align: center; }
+  .pill { display: inline-block; padding: 0.25rem 0.9rem; background: var(--accent-soft); color: #8a3306; border-radius: 999px; font-weight: 500; font-size: 0.9rem; }
+  h1 { font-size: clamp(2.5rem, 7vw, 4.8rem); font-weight: 800; max-width: 46rem; margin: 1.25rem auto 0; }
+  .sub { max-width: 36rem; margin: 1.5rem auto 0; font-size: 1.2rem; color: var(--muted); }
+  .btn { display: inline-block; margin-top: 2rem; padding: 0.85rem 1.7rem; background: var(--ink); color: #fff; border-radius: 999px; font-weight: 500; text-decoration: none; }
+  .btn:hover { background: #33275a; }
+
+  .report { max-width: 46rem; margin: 3.5rem auto 0; text-align: left; background: var(--surface); border: 2px solid var(--ink); border-radius: 1.25rem; padding: 1.75rem; box-shadow: 0 10px 0 var(--accent); }
+  .report-head { display: flex; justify-content: space-between; align-items: baseline; gap: 1rem; flex-wrap: wrap; }
+  .report h3 { font-size: 1.3rem; }
+  .report-head span { color: var(--muted); font-size: 0.95rem; }
+  .meter { margin-top: 1.4rem; }
+  .meter p { display: flex; justify-content: space-between; font-weight: 500; font-size: 0.98rem; }
+  .meter p span { color: var(--muted); font-weight: 400; }
+  .track { margin-top: 0.4rem; height: 0.7rem; background: var(--paper); border-radius: 999px; overflow: hidden; }
+  .fill { height: 100%; background: var(--accent); border-radius: 999px; }
+  .note { margin-top: 1.4rem; font-size: 0.85rem; color: var(--muted); }
+
+  section { padding: 4.5rem 0; }
+  .band { background: var(--surface); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+  h2 { font-size: clamp(1.9rem, 4vw, 2.6rem); font-weight: 800; max-width: 34rem; }
+
+  .rows { margin: 2.5rem 0 0; padding: 0; list-style: none; counter-reset: r; }
+  .rows li { counter-increment: r; display: grid; grid-template-columns: 4rem 1fr; gap: 1rem; padding: 1.5rem 0; border-top: 1px solid var(--line); }
+  .rows li::before { content: counter(r); font-family: "Fraunces", Georgia, serif; font-weight: 800; font-size: 2.4rem; line-height: 1; color: var(--accent); }
+  .rows h3 { font-size: 1.35rem; }
+  .rows p { margin-top: 0.4rem; color: var(--muted); max-width: 36rem; }
+
+  .two { margin-top: 2.5rem; display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; }
+  .two h3 { font-size: 1.3rem; }
+  .two ul { margin: 1rem 0 0; padding: 0; list-style: none; }
+  .two li { padding: 0.75rem 0; border-top: 1px solid var(--line); }
+  .yes li::before { content: "✓  "; color: var(--accent); font-weight: 700; }
+  .no li::before { content: "✕  "; color: var(--muted); font-weight: 700; }
+
+  footer { padding: 2.5rem 0 3rem; font-size: 0.92rem; color: var(--muted); }
+  footer .wrap { border-top: 1px solid var(--line); padding-top: 1.5rem; }
+  footer p + p { margin-top: 0.6rem; }
+
+  @media (max-width: 48rem) {
+    .two { grid-template-columns: 1fr; gap: 2.5rem; }
+    .rows li { grid-template-columns: 3rem 1fr; }
+    nav a:first-child { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <a class="brand" href="#top">Listing<b>Scout</b></a>
+    <nav>
+      <a href="#how">How it works</a>
+      <a href="#scope">Scope</a>
+    </nav>
+  </div>
+</header>
+
+<main id="top">
+  <section class="hero">
+    <div class="wrap">
+      <span class="pill">Personal project, in development</span>
+      <h1>Scout a product idea before you commit to it.</h1>
+      <p class="sub">Listing Scout looks at public Etsy listings through the official API and shows how much interest and how much competition a product category has.</p>
+      <a class="btn" href="#how">See how it works</a>
+
+      <div class="report" role="img" aria-label="Illustrative layout of a Listing Scout report, without real data">
+        <div class="report-head"><h3>Scout report</h3><span>Keyword: your product idea</span></div>
+        <div class="meter"><p>Interest <span>favorites relative to listing age</span></p><div class="track"><div class="fill" style="width:70%"></div></div></div>
+        <div class="meter"><p>Competition <span>active listings in the category</span></p><div class="track"><div class="fill" style="width:45%"></div></div></div>
+        <div class="meter"><p>Price spread <span>where similar listings sit</span></p><div class="track"><div class="fill" style="width:60%"></div></div></div>
+        <p class="note">Illustrative layout only. The bars are not real data.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="band" id="how">
+    <div class="wrap">
+      <h2>Three steps from idea to answer.</h2>
+      <ol class="rows">
+        <li><div><h3>Enter a keyword</h3><p>The tool sends a keyword search for active public listings to the Etsy Open API.</p></div></li>
+        <li><div><h3>Read the signals</h3><p>It reads titles, tags, prices and favorites, and compares them across the results.</p></div></li>
+        <li><div><h3>Get a short report</h3><p>A brief summary helps the owner decide whether the idea is worth pursuing.</p></div></li>
+      </ol>
+    </div>
+  </section>
+
+  <section id="scope">
+    <div class="wrap">
+      <h2>Small on purpose.</h2>
+      <div class="two">
+        <div class="yes">
+          <h3>What it does</h3>
+          <ul>
+            <li>Searches public, active listings by keyword</li>
+            <li>Reads titles, tags, prices and favorites</li>
+            <li>Keeps requests few and rate-limited</li>
+          </ul>
+        </div>
+        <div class="no">
+          <h3>What it doesn’t do</h3>
+          <ul>
+            <li>Create or edit listings</li>
+            <li>Read sales data or send emails</li>
+            <li>Scrape pages, or share or resell data</li>
+            <li>Charge anyone, or have other users</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <p>Built and used by Michelangelo as a personal research project.</p>
+    <p>The term ‘Etsy’ is a trademark of Etsy, Inc. This Application uses Etsy’s API, but is not endorsed or certified by Etsy.</p>
+  </div>
+</footer>
+
+</body>
+</html>
